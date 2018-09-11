@@ -8,6 +8,7 @@ import java.util.Map;
  * The parameters of the generator are @subject(String), @property(String).
  * Using @API_Wiki to grab the list of objects @objects(List<String>), and remove the correct facts.
  * Using @API_Google to grab the number of results @num_obj with input @objects, and the number of results @num_subj_obj with input @subject and @object, which will be saved in maps @num_subj_objs(Map<...>).
+ * If we have a @filePath, we can also read the @objects from the file
  * Then calculate the coefficients @rank_coeff(Map<...>) by @num_subj_obj / @num_obj.
  */
 
@@ -37,10 +38,10 @@ public interface SubjectProperty {
 
     /**
      * Read and save the @objects and @numb_objs from our local file.
-     * @param file the local file address.
+     * @param filePath the local file path.
      * @return the map for @objects and the corresponding number of results.
      */
-    public List<Object> grabObjects(String file);
+    public List<Object> grabObjects(String filePath);
 
     /**
      * Grab the number of results for @subject and each @object in the list @objects using @API_Google
@@ -57,7 +58,7 @@ public interface SubjectProperty {
     /**
     * @return the list of objects.
     */
-    public List<String> getObjects();
+    public List<Object> getObjects();
 
     /**
      * @return the map for @objects and the corresponding number of results.
@@ -77,8 +78,8 @@ public interface SubjectProperty {
     /**
      * If file == null, then run this.grabObjects(), this.grabNum_objs(), this.grabNum_subj_objs() and this.calcRank_coeff() to calculate all parameters we need.
      * Otherwise, run this.grabObjects(file), this.grabNum_objs(), this.grabNum_subj_objs() and this.calRank_coeff() to calculate all parameters we need.
-     * @param file the file address for objects.
+     * @param filePath the file path for objects.
      * @throws Exception
      */
-    public void calculateAll(String file) throws Exception;
+    public void calculateAll(String filePath) throws Exception;
 }
