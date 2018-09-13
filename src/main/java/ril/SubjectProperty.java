@@ -1,7 +1,6 @@
 package ril;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * We achieve Subject-property-pairs using this interface.
@@ -28,32 +27,32 @@ public interface SubjectProperty {
      * Grab the list of all negative facts with the fixed @subject and @property using @API_Wiki and SPARQL .
      * @return the list of objects.
      */
-    public List<Object> grabObjects();
+    public void grabObjects();
 
     /**
      * Grab the number of results for each @object in the list @objects using @API_Google.
      * @return the map for @objects and the corresponding number of results.
      */
-    public Map<String, Integer> grabNum_objs();
+    public void grabNum_objs();
 
     /**
      * Read and save the @objects and @numb_objs from our local file.
      * @param filePath the local file path.
      * @return the map for @objects and the corresponding number of results.
      */
-    public List<Object> grabObjects(String filePath);
+    public void grabObjects(String filePath);
 
     /**
      * Grab the number of results for @subject and each @object in the list @objects using @API_Google
      * @return the map for @subject, @objects and the corresponding number of results.
      */
-    public Map<String, Integer> grabNum_subj_objs();
+    public void grabNum_subj_objs();
 
     /**
      * Calculate the ranking-coefficients by @num_subj_obj / @num_obj.
      * @return the List according to the order.
      */
-    public List<Object> calcRank_coeff();
+    public void calcRank_coeff();
 
     /**
     * @return the list of objects.
@@ -61,25 +60,22 @@ public interface SubjectProperty {
     public List<Object> getObjects();
 
     /**
-     * @return the map for @objects and the corresponding number of results.
+     *
+     * @param parameter is "NUM_SUB_OBJ"  for co-occurrence of subject and object,
+     *                   or "NUM_OBJ" for occurrence of object,
+     *                   or "IMPORTANCE" for inherent importance,
+     *                   or "RANK_COEFF" for the rank coefficient (Namely, num_sub_obj / sum_obj).
+     * @return the decreasing sorted list according the parameter.
      */
-    public Map<String, Integer> getNum_objs();
-
-    /**
-     * @return the map for @subject, @objects and the corresponding number of results.
-     */
-    public Map<String, Integer> getNum_subj_objs();
-
-    /**
-     * @return the List according to the order.
-     */
-    public List<Object> getRank_coeff();
+    public void sortObject(Object.Parameter parameter);
 
     /**
      * If file == null, then run this.grabObjects(), this.grabNum_objs(), this.grabNum_subj_objs() and this.calcRank_coeff() to calculate all parameters we need.
      * Otherwise, run this.grabObjects(file), this.grabNum_objs(), this.grabNum_subj_objs() and this.calRank_coeff() to calculate all parameters we need.
+     * Finally, we sort the list according parameter
      * @param filePath the file path for objects.
+     * @param parameter the list sorted by @parameter.
      * @throws Exception
      */
-    public void calculateAll(String filePath) throws Exception;
+    public void calculateAll(String filePath, Object.Parameter parameter);
 }
