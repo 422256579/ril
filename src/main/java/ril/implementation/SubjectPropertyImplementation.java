@@ -1,4 +1,5 @@
 package ril.implementation;
+
 import ril.API_Factory;
 import ril.Object;
 import ril.SubjectProperty;
@@ -8,11 +9,8 @@ import java.util.ArrayList;
 
 public class SubjectPropertyImplementation implements SubjectProperty {
 
-    public final String API_Wiki = null;
-
-
     String subject;
-    String property;
+    String property ;
 
     ArrayList<Object> objects;
     public Object.Parameter sort_order = null;
@@ -65,7 +63,11 @@ public class SubjectPropertyImplementation implements SubjectProperty {
                 InputStreamReader read = new InputStreamReader(
                         new FileInputStream(file), encoding);// the files should be in Unicode form.
                 BufferedReader bufferedReader = new BufferedReader(read);
+
+                ArrayList<String> positive_objects = API_Factory.scrapeWiki(this.subject, this.property);
                 String lineTxt = null;
+                int sum = 0;
+                int count = 0;
                 while ((lineTxt = bufferedReader.readLine()) != null) {
                     String[] line = lineTxt.split("\\s+");
                     String number = line[line.length - 1];
@@ -80,16 +82,32 @@ public class SubjectPropertyImplementation implements SubjectProperty {
                             object = object + line[i]+ " ";
                         }
                         object = object + line[line.length-2];
+                        if(positive_objects.contains(object)) {
+                            continue;
+                        }
+
                         Object obj = new Object(this.subject, this.property,object,num);
                         objects.add(obj);
+                        sum = sum + num;
+                        count = count + 1;
                     }
                     catch(NumberFormatException e) {
                         System.out.println("Error while reading inherent importance." + "   " + number );
                         return;
                     }
                 }
+                double average = 1.0 * sum / count;
+                ArrayList<Object> objects_beyond_average = new ArrayList<>();
+                for(int i = 0; i< objects.size();i++){
+                    if(objects.get(i).getImportance() >=average){
+                        objects_beyond_average.add(objects.get(i));
+                    }
+                    else{
+                        break;
+                    }
+                }
                 read.close();
-                this.objects = objects;
+                this.objects = objects_beyond_average;
             } else {
                 System.out.println("The specified document does not exist.");
                 return;
