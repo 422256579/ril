@@ -30,10 +30,60 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         return this.property;
     }
 
-    //TODO
     @Override
     public void grabObjects(){
-        return ;
+        ArrayList<String> ids = API_Factory.scrapeObjects_IDs_Wiki(this.property);
+        ArrayList<Object> objs = new ArrayList<>();
+
+        ArrayList<String> positive_objects = API_Factory.scrapeWiki(this.subject, this.property);
+
+
+        for(int i=0; i<ids.size();i++){
+            String obj = API_Factory.scrapeLabelByID_WIKI(ids.get(i));
+
+            if(obj == null){
+                continue;
+            }
+            if(positive_objects.contains(obj)){
+                continue;
+            }
+
+            String[] name_pices = obj.split("\\s+");
+            String name = "";
+            if(name_pices.length > 1){
+                for(int j=0; j<name_pices.length-1;j++){
+                    name = name + name_pices[j] + "_";
+                }
+                name = name + name_pices[name_pices.length-1];
+            }
+            else{
+                name = obj;
+            }
+
+
+            int inherent_importance = API_Factory.grabViewers(name);
+
+            Object object = new Object(this.subject,this.property,obj,inherent_importance);
+            objs.add(object);
+        }
+
+        int sum = 0;
+        for(int i=0; i<objs.size();i++){
+            sum = sum + objs.get(i).getImportance();
+        }
+        double average = 1.0 * sum / objs.size();
+
+        System.out.println("Size of all awards : " + objs.size());
+        System.out.println("Average : " + average);
+
+        ArrayList<Object> objects_beyond_average = new ArrayList<>();
+        for(int i=0; i<objs.size();i++){
+            if(objs.get(i).getImportance() >= average){
+                objects_beyond_average.add(objs.get(i));
+            }
+        }
+        this.objects = objects_beyond_average;
+
     }
 
     @Override
@@ -97,6 +147,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
                     }
                 }
                 double average = 1.0 * sum / count;
+                System.out.println("Size of all awards :" + objects.size());
+                System.out.println("Average : " + average);
+
                 ArrayList<Object> objects_beyond_average = new ArrayList<>();
                 for(int i = 0; i< objects.size();i++){
                     if(objects.get(i).getImportance() >=average){
@@ -124,9 +177,11 @@ public class SubjectPropertyImplementation implements SubjectProperty {
             System.out.println("Objects does not exist.");
             return;
         }
+
+        String sub = API_Factory.scrapeLabelByID_WIKI(this.subject);
         for(int i = 0; i< objects.size(); i++){
             try {
-                int count = API_Factory.scrapeBing(objects.get(i).getSubject() + " " + objects.get(i).getObject());
+                int count = API_Factory.scrapeBing(sub + " " + objects.get(i).getObject());
                 objects.get(i).setNum_subj_object(count);
             }catch (IOException e){
                 System.out.println("IOException" + e);
@@ -138,11 +193,13 @@ public class SubjectPropertyImplementation implements SubjectProperty {
     @Override
     public void calcRank_coeff() {
         for(int i=0; i<objects.size();i++){
-            int num_obj = objects.get(i).getNum_object();
-            int num_sub_obj = objects.get(i).getNum_subj_object();
+            Object obj = objects.get(i);
+            int num_obj = obj.getNum_object();
+            int num_sub_obj = obj.getNum_subj_object();
             if( num_obj== -1 ||  num_sub_obj== -1){
-                System.out.println(" Num_object or Num_subj_object is not grabbed.");
-                return;
+                System.out.println(" Num_object or Num_subj_object is not grabbed. We remove it. Object is : " + obj.getObject());
+                this.objects.remove(obj);
+                continue;
             }
             else{
                 this.objects.get(i).setRank_coeff( 1.0 * num_sub_obj / num_obj);

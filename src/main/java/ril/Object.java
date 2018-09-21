@@ -13,7 +13,7 @@ public class Object {
     String object;
     String property;
     double rank_coeff = -1.0;
-    double importance = -1.0;
+    int importance = -1;
     int num_object = -1;
     int num_subj_object = -1;
 
@@ -29,7 +29,7 @@ public class Object {
         this.property = property;
     }
 
-    public void setImportance(double importance) {
+    public void setImportance(int importance) {
         this.importance = importance;
     }
 
@@ -56,7 +56,7 @@ public class Object {
      * @param object  The object fixed by @subject and @property.
      * @param importance The inherent importance of @object. e.g. the population of each county, the viewers or the number of winner of each award.
      */
-    public Object(String subject, String property, String object, double importance) {
+    public Object(String subject, String property, String object, int importance) {
         this.subject = subject;
         this.object = object;
         this.property = property;
@@ -79,7 +79,7 @@ public class Object {
         this.rank_coeff = rank_coeff;
     }
 
-    public double getImportance() {
+    public int getImportance() {
         return importance;
     }
 

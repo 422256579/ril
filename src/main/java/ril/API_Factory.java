@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class API_Factory {
@@ -67,4 +68,74 @@ public class API_Factory {
         }
         return positive_objects;
     }
+
+    public static String scrapeLabelByID_WIKI(String id){
+		try {
+			SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
+			sparqlRepository.initialize();
+			RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
+			String query = "";
+			query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
+					"PREFIX wd: <http://www.wikidata.org/entity/>\n" +
+					"select  *\n" +
+					"where { \n" +
+					"wd:" + id + " rdfs:label ?label .\n" +
+					"FILTER (langMatches( lang(?label), \"EN\" ) )\n" +
+					"} \n" +
+					"LIMIT 1";
+			TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
+			List<BindingSet> bss = QueryResults.asList(tupleQuery.evaluate());
+			if (bss.size() == 0) {
+				// this case for no label defined. e.g. Q45608
+				return null;
+			} else {
+				BindingSet bs = bss.get(0);
+				return bs.getValue("label").stringValue();
+			}
+		}
+		catch(Exception e){
+			System.out.println("Error when ID:   " + id);
+			return null;
+		}
+	}
+
+	public static ArrayList<String> scrapeObjects_IDs_Wiki(String property_wdt){
+		SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
+		sparqlRepository.initialize();
+		RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
+		String query = "";
+		query = "SELECT DISTINCT ?x WHERE{ \n" +
+  "?entry wdt:" +  property_wdt  +  " ?x \n" +
+		"}";
+		TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
+
+		ArrayList<String> objects_ids = new ArrayList<>();
+		for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
+			String[] strs = bs.getValue("x").stringValue().split("/");
+			objects_ids.add(strs[strs.length-1]);
+		}
+		return objects_ids;
+	}
+
+	public static int grabViewers(String object){
+		String startdate="2018050100";
+		String enddate="2018053100";
+		String link="https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/"+object+"/monthly/"+startdate+"/"+enddate;
+		String v="";
+
+		try{
+			Scanner s=new Scanner(new URL(link).openStream(), "UTF-8").useDelimiter("\\A");
+			if(s.hasNext()==true) {
+				String response=s.next();
+				String[] strs = response.split("\"views\":");
+				String str = strs[strs.length-1];
+				String[] strs_2 = str.split("}]}");
+				v = strs_2[0];
+			}
+		}
+		catch(java.io.IOException e){ v = "0";}
+		return Integer.parseInt(v);
+	}
 }
+
+
