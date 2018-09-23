@@ -27,9 +27,13 @@ public class API_Factory {
 
 	static int resultcount = 100;
 
+    /**
+     * This method scrape the occurrence of object (or co-occurrence of subject and object, depending on the @searchQuery).
+     * @param searchQuery The string of name of object / Or the string of name of subject + " " + object. Here the subject is the label of ID on Wikidata rather the ID itself.
+     * @return The occurrence or co-occurrence depending @searchQuery.
+     * @throws IOException
+     */
 	public static int scrapeBing(String searchQuery) throws IOException {
-
-
 		URL url = new URL(host + path + "?q=" +  URLEncoder.encode(searchQuery,
 				"UTF-8")+ "&CustomConfig=" + customConfigId +"&count=" + resultcount
 				+"&mkt=en-US&safesearch=Off&offset=0&responseFilter=webpages%2Cnews" );
@@ -51,6 +55,12 @@ public class API_Factory {
 		return count;
 	}
 
+    /**
+     * This method retrieve the object-list for the fixed @subject(ID-format) and @property(ID-format).
+     * @param subject
+     * @param property
+     * @return The ID-list, which is the result of our search for the fixed @subject and @property.
+     */
 	public static ArrayList<String> scrapeWiki(String subject, String property) {
         SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
         sparqlRepository.initialize();
@@ -69,6 +79,14 @@ public class API_Factory {
         return positive_objects;
     }
 
+    /**
+     * This method search the label of the ID string.
+     * On the one hand, we use it to convert the ID-list (result of above method) to Objects' name-list.
+     * e.g. For the ID "Q7191" we return "Nobel Price".
+     * On the other hand, we use this method the get the name of @subject.
+     * @param id The entity ID.
+     * @return The label (or normal name) of an entity with this @id on Wikidata.
+     */
     public static String scrapeLabelByID_WIKI(String id){
 		try {
 			SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
@@ -99,6 +117,12 @@ public class API_Factory {
 		}
 	}
 
+    /**
+     * This method is used to retrieve all possible objects for the fixed @property.
+     * e.g. all the awards.
+     * @param property_wdt the id of the property
+     * @return all objects for the fixed property.
+     */
 	public static ArrayList<String> scrapeObjects_IDs_Wiki(String property_wdt){
 		SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
 		sparqlRepository.initialize();
@@ -117,6 +141,11 @@ public class API_Factory {
 		return objects_ids;
 	}
 
+    /**
+     * This method retrieve the number of views on Wikipedia for the fixed object. Now, we consider the number of views as inherent importance.
+     * @param object the name of object with underline. e.g. "Stephen_Hawking"
+     * @return the number of views.
+     */
 	public static int grabViewers(String object){
 		String startdate="2018050100";
 		String enddate="2018053100";

@@ -5,33 +5,32 @@ package ril;
  */
 public class Object {
 
+    /**
+     * This is the enum for sorting the object list.
+     * "NUM_SUB_OBJ" for co-occurrence .
+     * "NUM_OBJ" for occurrence.
+     * "RANK_COEFF" for rank coefficient.
+     * "IMPORTANCE" for inherent importance.
+     */
     public enum Parameter{
         NUM_SUB_OBJ, NUM_OBJ,RANK_COEFF,IMPORTANCE
     }
 
+    /*Here the @subject and @property are the IDs on Wikidata, but @object is the name of the object.
+     e.g. "Q17714" is the subject for "Stephen Hawking", "P166" is the property for "awards received" and "Nobel Price" is the subject for "Nobel Price".
+     We use this setting because @subject and @property are in the higher hierarchy of our design and it will be convenient for us to retrieve some information on Wikidata.
+     But @object is in the lowest hierarchy of our design and we don't need retrieve anything on Wikidata depending on it.
+     */
     String subject;
     String object;
     String property;
+
+    // Below stand the parameters we need. We set them -1 as default.
     double rank_coeff = -1.0;
     int importance = -1;
     int num_object = -1;
     int num_subj_object = -1;
 
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public void setObject(String object) {
-        this.object = object;
-    }
-
-    public void setProperty(String property) {
-        this.property = property;
-    }
-
-    public void setImportance(int importance) {
-        this.importance = importance;
-    }
 
     public int getNum_object() {
         return num_object;
@@ -88,6 +87,9 @@ public class Object {
     }
 
 
+    /*
+    We define two objects are equal if and only if the @subject, @property and @object all are same.
+     */
     @Override
     public boolean equals(java.lang.Object o) {
         if (this == o) return true;

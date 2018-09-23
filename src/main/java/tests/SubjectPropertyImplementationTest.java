@@ -11,6 +11,9 @@ import static org.junit.Assert.assertTrue;
 
 public class SubjectPropertyImplementationTest {
 
+    /**
+     * This method test the whole program for a local file.
+     */
     @Test
     public void DOALL_Local() {
         long startTime = System.nanoTime();
@@ -59,11 +62,17 @@ public class SubjectPropertyImplementationTest {
 
     }
 
+    /**
+     * This test checks whether any error occurs during retrieve objects from Wikidata.
+     */
     @Test
     public void grabObjectsWIKI() {
         API_Factory.scrapeWiki("Q17714","P166");
     }
 
+    /**
+     * This test checks whether the positive objects for the fixed @subject and @object are removed.
+     */
     @Test
     public void removeNegativeObjects(){
         SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q17714","P166");
@@ -74,6 +83,9 @@ public class SubjectPropertyImplementationTest {
         System.out.println("Size of Negative Awards :  " + objects_negative.size());
     }
 
+    /**
+     * This test checks the process grabbing labels on Wikidata according to their ID.
+     */
     @Test
     public void testLGetLabelByID_WIKI(){
         String id = "Q1994";
@@ -81,6 +93,9 @@ public class SubjectPropertyImplementationTest {
         assertTrue(str.equals("2011"));
     }
 
+    /**
+     * This test checks whether we can get object-list for the fixed property.
+     */
     @Test
     public void testObject_IDs_WIKI(){
         String property_wdt = "P166";
@@ -90,6 +105,9 @@ public class SubjectPropertyImplementationTest {
         System.out.println(ids.get(0));
     }
 
+    /**
+     * This test checks the process to get all labels for all objects.
+     */
     @Test
     public void testObject_ID_to_Label(){
         String property_wdt = "P166";
@@ -100,12 +118,18 @@ public class SubjectPropertyImplementationTest {
         System.out.println("label:   " + label);
     }
 
+    /**
+     * This test checks whether we can retrieve the number of views smoothly.
+     */
     @Test
     public void testViews(){
         int num = API_Factory.grabViewers("Stephen_Hawking");
         System.out.println(num);
     }
 
+    /**
+     * This test checks whether we can retrieve the objects for the fixed @subject and @property using Wikidata.
+     */
     @Test
     public void grabObjects_Online() {
         long startTime = System.nanoTime();
@@ -119,6 +143,9 @@ public class SubjectPropertyImplementationTest {
 
     }
 
+    /**
+     * This test checks whether we can run the whole program for the fixed @subject and @property smoothly, when there are no local file, namely all the data must be scraped online.
+     */
     @Test
     public void DOALL_Online() {
         long startTime = System.nanoTime();

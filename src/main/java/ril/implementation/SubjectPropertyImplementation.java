@@ -7,6 +7,8 @@ import ril.SubjectProperty;
 import java.io.*;
 import java.util.ArrayList;
 
+// This class implements the interface "SubjectProperty".
+// We don't comment the @Overload methods.
 public class SubjectPropertyImplementation implements SubjectProperty {
 
     String subject;
@@ -270,6 +272,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         }
     }
 
+    /**
+     * This method sorts the object list according to the occurrence.
+     */
     private void sortObject_Num_Object(){
         ArrayList<Object> objs = new ArrayList<>();
         objs.add(this.objects.get(0));
@@ -292,6 +297,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         this.objects = objs;
     }
 
+    /**
+     * This method sorts the object list according to the co-occurrence.
+     */
     private void sortObject_Num_Sub_Object(){
         ArrayList<Object> objs = new ArrayList<>();
         objs.add(this.objects.get(0));
@@ -314,6 +322,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         this.objects = objs;
     }
 
+    /**
+     * This method sort the object list according to the inherent importance.
+     */
     private void sortObject_Importance(){
         ArrayList<Object> objs = new ArrayList<>();
         objs.add(this.objects.get(0));
@@ -336,6 +347,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         this.objects = objs;
     }
 
+    /**
+     * This method sort the object list according to the rank coefficient.
+     */
     private void sortObject_Rank_Coeff(){
         ArrayList<Object> objs = new ArrayList<>();
         objs.add(this.objects.get(0));
