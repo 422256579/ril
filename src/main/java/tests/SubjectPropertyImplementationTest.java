@@ -101,7 +101,7 @@ public class SubjectPropertyImplementationTest {
         String property_wdt = "P166";
         ArrayList<String> ids = API_Factory.scrapeObjects_IDs_Wiki(property_wdt);
         assertTrue(ids != null);
-        assertTrue(ids.size()> 10000);
+        assertTrue(ids.size() == 1000);
         System.out.println(ids.get(0));
     }
 
@@ -150,7 +150,10 @@ public class SubjectPropertyImplementationTest {
     public void DOALL_Online() {
         long startTime = System.nanoTime();
 
-        SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q17714","P166");
+        //SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q17714","P166"); //Stephen Hawking, awards received
+        //SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q134798","P166"); //Haruki Murakami (村上春树), awards received
+        //SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q1854639","P186"); // dumpling, material used
+        SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q700758","P463"); // Saarland University, member of
         sp.grabObjects();
         long time1 = System.nanoTime();
         long duration1 = (time1 - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
@@ -190,5 +193,20 @@ public class SubjectPropertyImplementationTest {
         long duration = (endTime - startTime) / 1000000;  //divide by 1000000 to get milliseconds.
         System.out.println("Total Time:  " + duration + " ms = " + (duration / 60000) + " min");
         System.out.println("Size of Valid negative objects list of SUBJECT " + sp.getSubject() + "  And PROPERTY " +  sp.getProperty() + "  : " + sp.getObjects().size());
+    }
+
+    @Test
+    public void test_fetch_SearchResult_Wikipedia(){
+        String sub = "Stephen Hawking";
+        String obj = "Nobel Prize";
+        int num = API_Factory.scrapeCo_occurrence_Wikipedia(sub,obj);
+        System.out.println(num);
+        assertTrue(num != -1);
+        int num_subj = API_Factory.scrapeOccurrence_Wikipedia(sub);
+        System.out.println(num_subj);
+        assertTrue(num_subj != -1);
+        int num_obj = API_Factory.scrapeOccurrence_Wikipedia(obj);
+        System.out.println(num_obj);
+        assertTrue(num_obj != -1);
     }
 }

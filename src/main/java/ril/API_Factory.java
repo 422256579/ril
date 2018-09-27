@@ -128,9 +128,14 @@ public class API_Factory {
 		sparqlRepository.initialize();
 		RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
 		String query = "";
-		query = "SELECT DISTINCT ?x WHERE{ \n" +
-  "?entry wdt:" +  property_wdt  +  " ?x \n" +
-		"}";
+		query = "SELECT ?x (count(?x) as ?count) \n" +
+		"WHERE \n" +
+		"{ \n" +
+  "?subject wdt:" + property_wdt +  " ?x. \n" +
+		"} \n" +
+		"GROUP BY ?x \n" +
+		"ORDER BY DESC(?count) \n" +
+		"LIMIT 1000";
 		TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
 
 		ArrayList<String> objects_ids = new ArrayList<>();
@@ -165,6 +170,75 @@ public class API_Factory {
 		catch(java.io.IOException e){ v = "0";}
 		return Integer.parseInt(v);
 	}
+
+	public static int scrapeCo_occurrence_Wikipedia(String subject_label, String object_label){
+		String[] subject_pieces = subject_label.split(" ");
+		String[] object_pieces = object_label.split(" ");
+        String subject_label_new = "";
+        if(subject_pieces.length>1) {
+            for (int i = 0; i < subject_pieces.length -1; i++) {
+				subject_label_new = subject_label_new + subject_pieces[i] + "+";
+			}
+            subject_label_new = subject_label_new + subject_pieces[subject_pieces.length-1];
+        }else{
+			subject_label_new = subject_label;
+		}
+        String object_label_new = "";
+		if(object_pieces.length>1) {
+			for (int i = 0; i < object_pieces.length -1; i++) {
+				object_label_new = object_label_new + object_pieces[i] + "+";
+			}
+			object_label_new = object_label_new + object_pieces[object_pieces.length-1];
+		}else{
+			object_label_new = object_label;
+		}
+        try{
+			URL url = new URL("https://en.wikipedia.org/w/index.php?search=%22" + subject_label_new + "%22+%22" + object_label_new + "%22&title=Special:Search&profile=default&fulltext=1&searchToken=4zplxaeirgstja7g4efz6et5t");//网址链接
+			String out = new Scanner(url.openStream(), "UTF-8").useDelimiter("\\A").next();
+			String[] strs = out.split("data-mw-num-results-total=\"");
+            if(strs.length == 1){
+                return 0;
+            }
+            String[] strs_1 = strs[1].split("\"",2);
+			String str = strs_1[0];
+
+			int num = Integer.parseInt(str);
+			return num;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return -1;
+		}
+	}
+
+    public static int scrapeOccurrence_Wikipedia(String label) {
+        String[] label_pieces = label.split(" ");
+        String label_new = "";
+        if (label_pieces.length > 1) {
+            for (int i = 0; i < label_pieces.length - 1; i++) {
+                label_new = label_new + label_pieces[i] + "+";
+            }
+            label_new = label_new + label_pieces[label_pieces.length - 1];
+        } else {
+            label_new = label;
+        }
+        try {
+            URL url = new URL("https://en.wikipedia.org/w/index.php?search=%22" + label_new + "%22&title=Special:Search&profile=default&fulltext=1&searchToken=4zplxaeirgstja7g4efz6et5t");//网址链接
+            String out = new Scanner(url.openStream(), "UTF-8").useDelimiter("\\A").next();
+            String[] strs = out.split("data-mw-num-results-total=\"");
+            if(strs.length == 1){
+                return 0;
+            }
+
+            String[] strs_1 = strs[1].split("\"", 2);
+            String str = strs_1[0];
+
+            int num = Integer.parseInt(str);
+            return num;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return -1;
+        }
+    }
 }
 
 

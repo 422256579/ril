@@ -31,22 +31,8 @@ public class Object {
     int num_object = -1;
     int num_subj_object = -1;
 
-
-    public int getNum_object() {
-        return num_object;
-    }
-
-    public void setNum_object(int num_object) {
-        this.num_object = num_object;
-    }
-
-    public int getNum_subj_object() {
-        return num_subj_object;
-    }
-
-    public void setNum_subj_object(int num_subj_object) {
-        this.num_subj_object = num_subj_object;
-    }
+    int rank_rank_coeff = -1;
+    int rank_importance = -1;
 
     /**
      *
@@ -86,7 +72,41 @@ public class Object {
         return rank_coeff;
     }
 
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
+    public int getRank_rank_coeff() {
+        return rank_rank_coeff;
+    }
+
+    public void setRank_rank_coeff(int rank_rank_coeff) {
+        this.rank_rank_coeff = rank_rank_coeff;
+    }
+
+    public int getRank_importance() {
+        return rank_importance;
+    }
+
+    public void setRank_importance(int rank_importance) {
+        this.rank_importance = rank_importance;
+    }
+
+    public int getNum_object() {
+        return num_object;
+    }
+
+    public void setNum_object(int num_object) {
+        this.num_object = num_object;
+    }
+
+    public int getNum_subj_object() {
+        return num_subj_object;
+    }
+
+    public void setNum_subj_object(int num_subj_object) {
+        this.num_subj_object = num_subj_object;
+    }
     /*
     We define two objects are equal if and only if the @subject, @property and @object all are same.
      */
