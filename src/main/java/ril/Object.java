@@ -1,53 +1,50 @@
 package ril;
 
 import ril.data.ComplexData;
-import ril.data.SimpleData;
+import ril.data.DoubleData;
+import ril.data.IntegerData;
 
 /**
- * This class saves the information of @object and @ranking-coefficient regarding @subject and @property.
+ * This class saves the information of @object and @ranking-coefficient regarding @subject_ID and @property_ID.
  */
 public class Object {
 
-    /*Here the @subject and @property are the IDs on Wikidata, but @object is the name of the object.
-     e.g. "Q17714" is the subject for "Stephen Hawking", "P166" is the property for "awards received" and "Nobel Price" is the subject for "Nobel Price".
-     We use this setting because @subject and @property are in the higher hierarchy of our design and it will be convenient for us to retrieve some information on Wikidata.
-     But @object is in the lowest hierarchy of our design and we don't need retrieve anything on Wikidata depending on it.
-     */
-    String subject;
+    String subject_ID;
     String object_label;
     String object_ID;
-    String property;
+    String property_ID;
 
     // Below stand the parameters we need. We set them -1 as default.
-    SimpleData importance = new SimpleData();
+    IntegerData importance = new IntegerData();
     ComplexData bing = new ComplexData();
     ComplexData wikipedia = new ComplexData();
-    SimpleData countTriple = new SimpleData();
+    IntegerData countTriple = new IntegerData();
+    DoubleData groundTruth = new DoubleData();
 
-    // True, if this entity is an positive object for the given subject and property.
+    // True, if this entity is an positive object for the given subject_ID and property_ID.
     // Otherwise, false.
     boolean positive_obj = false;
 
 
     /**
      *
-     * @param subject The subject we use.
-     * @param property The property we use.
-     * @param object_ID  The object fixed by @subject and @property.
+     * @param subject_ID The subject_ID we use.
+     * @param property_ID The property_ID we use.
+     * @param object_ID  The object fixed by @subject_ID and @property_ID.
      */
-    public Object(String subject, String property, String object_ID, String object_label) {
-        this.subject = subject;
+    public Object(String subject_ID, String property_ID, String object_ID, String object_label) {
+        this.subject_ID = subject_ID;
         this.object_ID = object_ID;
-        this.property = property;
+        this.property_ID = property_ID;
         this.object_label = object_label;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getSubject_ID() {
+        return subject_ID;
     }
 
-    public String getProperty() {
-        return property;
+    public String getProperty_ID() {
+        return property_ID;
     }
 
     public String getObject_ID() {
@@ -138,12 +135,34 @@ public class Object {
         }
     }
 
-    public void setCount_triple(int count_triple) {
+    public void setCountTriple(int count_triple) {
         this.countTriple.setValue(count_triple);
     }
 
-    public int getCount_triple() {
+    public int getCountTriple() {
         return this.countTriple.getValue();
+    }
+
+    public void setRank_CountTriple(int rank_countTriple){
+        this.countTriple.setRank(rank_countTriple);
+    }
+
+    public int getRank_CountTriple(){ return this.countTriple.getRank();}
+
+    public double getGroundTruth() {
+        return this.groundTruth.getValue();
+    }
+
+    public void setGroundTruth(double groundTruth) {
+        this.groundTruth.setValue(groundTruth);
+    }
+
+    public int getRank_GroundTruth(){
+        return this.groundTruth.getRank();
+    }
+
+    public void setRank_GroundTruth(int rank_groundTruth){
+        this.groundTruth.setRank(rank_groundTruth);
     }
 
     public void incrementCount_triple(){
@@ -159,14 +178,14 @@ public class Object {
     }
 
     /*
-  We define two objects are equal if and only if the @subject, @property and @object all are same.
+  We define two objects are equal if and only if the @subject_ID, @property_ID and @object all are same.
      */
     @Override
     public boolean equals(java.lang.Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Object object1 = (Object) o;
-        return object1.subject.equals(this.subject) && object1.property.equals(this.property) && object1.object_ID.equals(this.object_ID);
+        return object1.subject_ID.equals(this.subject_ID) && object1.property_ID.equals(this.property_ID) && object1.object_ID.equals(this.object_ID);
     }
 
 }

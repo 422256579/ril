@@ -52,7 +52,7 @@ public class Export_Factory {
 
             //Second row
         row2.createCell(0).setCellValue("Labels of objects");
-        row2.createCell(1).setCellValue("");
+        row2.createCell(1).setCellValue("ID of objects");
         row2.createCell(2).setCellValue("IMPORTANCE");
         row2.createCell(3).setCellValue("Ranked by IMPORTANCE");
         row2.createCell(4).setCellValue("CO_OCCUR_COEFF_Bing");
@@ -84,7 +84,7 @@ public class Export_Factory {
             Object obj = objects.get(rowNum);
 
             row.createCell(0).setCellValue(obj.getObject_label());
-            row.createCell(1).setCellValue("");
+            row.createCell(1).setCellValue(obj.getObject_ID());
             row.createCell(2).setCellValue(obj.getImportance());
             row.createCell(3).setCellValue(obj.getRank_importance());
             SubjectProperty.API_Occurrence api = SubjectProperty.API_Occurrence.Bing;
@@ -110,12 +110,12 @@ public class Export_Factory {
             row.createCell(20).setCellValue(cal_weighted(obj.getRank_importance(),obj.getRank_co_occur_coeff(api),2.0/3));
             row.createCell(21).setCellValue(cal_weighted(obj.getRank_importance(),obj.getRank_co_occur_coeff(api),0.25));
             row.createCell(22).setCellValue(cal_weighted(obj.getRank_importance(),obj.getRank_co_occur_coeff(api),0.75));
-            row.createCell(23).setCellValue(obj.getCount_triple());
+            row.createCell(23).setCellValue(obj.getCountTriple());
             int pos = obj.isPositive_obj() ? 1:0;
             row.createCell(24).setCellValue(pos);
         }
         try {
-            FileOutputStream fout = new FileOutputStream("D:\\RIL_Excel\\3\\" + sp.getSubject_id() + "_" + sp.getProperty_id() + "_top100.xls" );
+            FileOutputStream fout = new FileOutputStream("D:\\RIL_Excel\\4\\" + sp.getSubject_id() + "_" + sp.getProperty_id() + "_top100.xls" );
             excel.write(fout);
             fout.close();
             System.out.println(hssfSheet.getSheetName() + " created successfully.");
@@ -123,8 +123,6 @@ public class Export_Factory {
             e.printStackTrace();
         }
     }
-
-
 
     public static String cal_weighted(int rank_1, int rank_2, double weighted){
         DecimalFormat df = new DecimalFormat("#.##");

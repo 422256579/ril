@@ -8,6 +8,7 @@ import ril.Object;
 import ril.SubjectProperty;
 import ril.facotry.API_Factory;
 import ril.facotry.Export_Factory;
+import ril.facotry.Sort_Factory;
 import ril.implementation.SubjectPropertyImplementation;
 
 import java.io.FileOutputStream;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertTrue;
+import static ril.facotry.Import_Factory.readExcel;
 import static ril.facotry.Sort_Factory.sortObject_Importance;
 
 public class SubjectPropertyImplementationTest {
@@ -90,7 +92,7 @@ public class SubjectPropertyImplementationTest {
         System.out.println("Time for grabCo_Occurrence(" + api + "):  " + duration3 + " ms = " + (duration3 / 60000) + " min");
         assertTrue(sp.getObjects().get(0).getCo_Occurrence(api) != -1);
 
-        sp.calcCo_Occurrence_Coefficient(api);
+        sp.computeCo_Occurrence_Coefficient(api);
         long time4 = System.nanoTime();
         long duration4 = (time4 - time3) / 1000000;  //divide by 1000000 to get milliseconds.
         System.out.println("Time for calcCo_occurrence_Coeff:  " + duration4 + " ms = " + (duration4 / 60000) + " min");
@@ -111,7 +113,7 @@ public class SubjectPropertyImplementationTest {
         System.out.println("Time for grabCo_Occurrence(" + api + "):  " + duration6 + " ms = " + (duration6 / 60000) + " min");
         assertTrue(sp.getObjects().get(0).getCo_Occurrence(api) != -1);
 
-        sp.calcCo_Occurrence_Coefficient(api);
+        sp.computeCo_Occurrence_Coefficient(api);
         long time7 = System.nanoTime();
         long duration7 = (time7 - time6) / 1000000;  //divide by 1000000 to get milliseconds.
         System.out.println("Time for calcCo_occurrence_Coeff:  " + duration7 + " ms = " + (duration7 / 60000) + " min");
@@ -231,9 +233,46 @@ public class SubjectPropertyImplementationTest {
         objects.add(obj2);
         objects = sortObject_Importance(objects);
         assert(objects.get(0).getImportance() == 100);
-
-
     }
 
+    public void NDCG_Single(String path){
+        SubjectProperty sp = readExcel(path);
 
+        double NDCG_For_Importance = sp.computeNDCG(Sort_Factory.Parameter.IMPORTANCE);
+        double NDCG_For_CO_OCCUR_COEFF_Wikipedia = sp.computeNDCG(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia);
+        double NDCG_For_CO_OCCUR_COEFF_Bing = sp.computeNDCG(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing);
+        double NDCG_FOR_CountTriple = sp.computeNDCG(Sort_Factory.Parameter.COUNTTRIPLE);
+
+        System.out.println(" For file :" + path);
+        System.out.println(" Subject: " + sp.getSubject_label() + "/" + sp.getSubject_id());
+        System.out.println(" Property: " + sp.getProperty_label() + "/" + sp.getProperty_id());
+        System.out.println(" IDCG : " + sp.getIDCG());
+        System.out.println(" NDCG for Importance : " + NDCG_For_Importance);
+        System.out.println(" NDCG for Co_Occurrence_Coefficient_Wikipedia : " + NDCG_For_CO_OCCUR_COEFF_Wikipedia);
+        System.out.println(" NDCG for Co_Occurrence_Coefficient_Bing : " + NDCG_For_CO_OCCUR_COEFF_Bing);
+        System.out.println(" NDCG for countTriple : " + NDCG_FOR_CountTriple);
+        System.out.println(" NDCG 1:1:1:1 :"  + ((NDCG_For_Importance + NDCG_For_CO_OCCUR_COEFF_Wikipedia + NDCG_For_CO_OCCUR_COEFF_Bing + NDCG_FOR_CountTriple) / 4.0));
+    }
+
+    @Test
+    public void NDCG_tests(){
+        String folderPath = "D:\\RIL_Excel\\3\\assign ground truth\\";
+        String file1 = "Q177_P527_top100.xls";
+        String file2 = "Q9202_P186_top100.xls";
+        String file3 = "Q17714_P166_top100.xls";
+        String file4 = "Q22686_P166_top100.xls";
+        String file5 = "Q35332_P166_top100.xls";
+        String file6 = "Q134798_P166_top100.xls";
+        String file7 = "Q700758_P463_top100.xls";
+        String file8 = "Q1854639_P186_top100.xls";
+
+        NDCG_Single(folderPath + file1);
+        NDCG_Single(folderPath + file2);
+        NDCG_Single(folderPath + file3);
+        NDCG_Single(folderPath + file4);
+        NDCG_Single(folderPath + file5);
+        NDCG_Single(folderPath + file6);
+        NDCG_Single(folderPath + file7);
+        NDCG_Single(folderPath + file8);
+    }
 }

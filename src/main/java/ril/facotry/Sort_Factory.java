@@ -13,7 +13,7 @@ public class Sort_Factory {
      * "IMPORTANCE" for inherent importance.
      */
     public enum Parameter{
-        OCCURENCE_Bing, OCCURRENCE_Wikipedia, CO_OCCURRENCE_Bing, CO_OCCURRENCE_Wikipedia, CO_OCCURRENCE_COEFFICIENT,IMPORTANCE
+        OCCURENCE_Bing, OCCURRENCE_Wikipedia, CO_OCCURRENCE_Bing, CO_OCCURRENCE_Wikipedia, CO_OCCURRENCE_COEFFICIENT_Bing,CO_OCCURRENCE_COEFFICIENT_Wikipedia, IMPORTANCE, GROUND_TRUTH, COUNTTRIPLE
     }
 
     /**
@@ -90,6 +90,62 @@ public class Sort_Factory {
         }
         for(int i=0; i<objs.size();i++){
             objs.get(i).setRank_importance(i + 1);
+        }
+        return objs;
+    }
+
+    /**
+     * This method sort the object list according to the COUNTTRIPLE.
+     */
+    public static ArrayList<Object> sortObject_countTriple(ArrayList<Object> objects){
+        ArrayList<Object> objs = new ArrayList<>();
+        objs.add(objects.get(0));
+        for(int i=1; i<objects.size(); i++){
+            boolean insert = false;
+            for(int j=0;j<objs.size();j++){
+                if(objects.get(i).getCountTriple() > objs.get(j).getCountTriple()){
+                    objs.add(j,objects.get(i));
+                    insert = true;
+                    break;
+                }
+            }
+            if(insert == true){
+                continue;
+            }
+            else{
+                objs.add(objects.get(i));
+            }
+        }
+        for(int i=0; i<objs.size();i++){
+            objs.get(i).setRank_CountTriple(i + 1);
+        }
+        return objs;
+    }
+
+    /**
+     * This method sort the object list according to the groundTruth.
+     */
+    public static ArrayList<Object> sortObject_GoundTruth(ArrayList<Object> objects){
+        ArrayList<Object> objs = new ArrayList<>();
+        objs.add(objects.get(0));
+        for(int i=1; i<objects.size(); i++){
+            boolean insert = false;
+            for(int j=0;j<objs.size();j++){
+                if(objects.get(i).getGroundTruth() > objs.get(j).getGroundTruth()){
+                    objs.add(j,objects.get(i));
+                    insert = true;
+                    break;
+                }
+            }
+            if(insert == true){
+                continue;
+            }
+            else{
+                objs.add(objects.get(i));
+            }
+        }
+        for(int i=0; i<objs.size();i++){
+            objs.get(i).setRank_GroundTruth(i + 1);
         }
         return objs;
     }

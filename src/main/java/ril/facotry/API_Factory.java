@@ -435,7 +435,7 @@ public class API_Factory {
         ArrayList<String> superclass_ids_P279 = new ArrayList<>();
         API_Factory.scrape_Object_IDs_given_SubjectAndProperty(subject_ID, "P279", superclass_ids_P279);
 
-        //Finally, count the number of countTriple for each possible objects.
+        //Finally, count the number of COUNTTRIPLE for each possible objects.
         for(int i=0; i<objects.size();i++){
             int num = 0;
             for(String superclass : superclass_ids_P31){
@@ -444,7 +444,7 @@ public class API_Factory {
             for(String superclass : superclass_ids_P279){
                 num = num + scrapeCountTriple_given_Property_Object_Superclass(property_ID,"P279",objects.get(i).getObject_ID(),superclass);
             }
-            objects.get(i).setCount_triple(num);
+            objects.get(i).setCountTriple(num);
         }
         System.out.println("This result is check by type: subject " + subject_ID + " property " + property_ID);
     }
@@ -469,7 +469,7 @@ public class API_Factory {
                     continue;
                 } else {
                     Object obj = new Object(subject_ID, property_ID, object_ID, object_label);
-                    obj.setCount_triple(countTriple);
+                    obj.setCountTriple(countTriple);
                     objects.add(obj);
                 }
             }

@@ -1,12 +1,9 @@
 package ril.data;
 
-public class SimpleData {
+public class IntegerData {
 
     int value = -1;
     int rank = -1;
-
-    public SimpleData() {
-    }
 
     public int getValue() {
         return value;
