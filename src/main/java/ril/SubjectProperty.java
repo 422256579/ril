@@ -2,6 +2,7 @@ package ril;
 
 import ril.facotry.Sort_Factory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,14 +60,34 @@ public interface SubjectProperty {
     /**
     * @return the list of objects.
     */
-    public List<Object> getObjects();
+    public ArrayList<Object> getObjects();
 
+    public void setObjects(ArrayList<Object> objects);
+
+    /**
+     * @return the list of negative objects;
+     */
+
+    public List<Object> getNegativeObjects();
+
+
+    public ArrayList<Object> sortObject(List<Object> objects, Sort_Factory.Parameter parameter);
 
     public void sortObject(Sort_Factory.Parameter parameter);
 
     public double computeNDCG(Sort_Factory.Parameter parameter);
 
     public double getIDCG();
+
+    public void grabNumSuperclass();
+
+    public void grabNumSubclass();
+
+    public void grabDistance();
+
+    public void grabNumSubject();
+
+    public void grabNumSubjectProperty();
 
         /**
          * If file == null, then run this.grabObjects(), this.grabOccurrence(), this.grabCo_Occurrence() and this.computeCo_Occurrence_Coefficient() to calculate all parameters we need.

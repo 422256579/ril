@@ -1,26 +1,22 @@
 package ril.implementation;
 
-import ril.facotry.API_Factory;
 import ril.Object;
 import ril.SubjectProperty;
+import ril.facotry.API_Factory;
 import ril.facotry.Sort_Factory;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static ril.facotry.Sort_Factory.*;
 
-// This class implements the interface "SubjectProperty".
-// We don't comment the @Overload methods.
 public class SubjectPropertyImplementation implements SubjectProperty {
 
     String subject_id;
     String subject_label;
     String property_id;
     String property_label;
-
     ArrayList<Object> objects;
-    public Sort_Factory.Parameter sort_order = null;
-
     double IDCG = -1.0;
 
     public SubjectPropertyImplementation(String subject_id, String property_id) {
@@ -62,6 +58,7 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         return IDCG;
     }
 
+    @Override
     public void setObjects(ArrayList<Object> objects) {
         this.objects = objects;
     }
@@ -87,7 +84,7 @@ public class SubjectPropertyImplementation implements SubjectProperty {
             this.objects.get(i).setImportance(inherent_importance);
         }
 
-        sortObject(Sort_Factory.Parameter.IMPORTANCE);
+        this.objects = sortObject(this.objects,Sort_Factory.Parameter.IMPORTANCE);
         int sum = 0;
         for(int i=0; i<this.objects.size();i++){
             sum = sum + this.objects.get(i).getImportance();
@@ -117,6 +114,17 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         }
         this.objects = objects_beyond_average;
         */
+    }
+
+    @Override
+    public List<Object> getNegativeObjects() {
+        ArrayList<Object> objects_removePositiv = new ArrayList<>();
+        for(int i=0; i<this.objects.size();i++){
+            if(this.objects.get(i).isPositive_obj() == false){
+                objects_removePositiv.add(this.objects.get(i));
+            }
+        }
+        return objects_removePositiv;
     }
 
     @Override
@@ -168,9 +176,9 @@ public class SubjectPropertyImplementation implements SubjectProperty {
             }
         }
         if(api == API_Occurrence.Bing) {
-            sortObject(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing);
+            this.objects = sortObject(this.objects, Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing);
         }else{
-            sortObject(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia);
+            this.objects = sortObject(this.objects,Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia);
         }
     }
 
@@ -184,7 +192,7 @@ public class SubjectPropertyImplementation implements SubjectProperty {
         this.grabOccurrence(api);
         this.grabCo_Occurrence(api);
         this.computeCo_Occurrence_Coefficient(api);
-        this.sortObject(parameter);
+        this.sortObject(this.objects, parameter);
     }
 
     @Override
@@ -201,47 +209,67 @@ public class SubjectPropertyImplementation implements SubjectProperty {
      * @return the decreasing sorted list according the parameter.
      */
     @Override
-    public void sortObject(Sort_Factory.Parameter parameter) {
-        if(parameter != Sort_Factory.Parameter.IMPORTANCE &&  parameter != Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing && parameter != Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia && parameter != Sort_Factory.Parameter.GROUND_TRUTH && parameter != Sort_Factory.Parameter.COUNTTRIPLE){
-            return;
-        }else if(parameter == Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing){
-            this.objects = sortObject_Rank_Coeff(this.objects,API_Occurrence.Bing);
-        }else if(parameter == Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia){
-            this.objects = sortObject_Rank_Coeff(this.objects,API_Occurrence.Wikipedia);
-        }else if(parameter == Sort_Factory.Parameter.IMPORTANCE){
-            this.objects = sortObject_Importance(this.objects);
-        }else if(parameter == Sort_Factory.Parameter.COUNTTRIPLE){
-            this.objects = sortObject_countTriple(this.objects);
-        }else{
-            this.objects = sortObject_GoundTruth(this.objects);
+    public ArrayList<Object> sortObject(List<Object> objects, Sort_Factory.Parameter parameter) {
+        if(parameter == null || objects == null){
+            return null;
         }
-        this.sort_order = parameter;
+        switch(parameter){
+            case CO_OCCURRENCE_COEFFICIENT_Bing: return sortObject_Rank_Coeff(objects,API_Occurrence.Bing);
+            case CO_OCCURRENCE_COEFFICIENT_Wikipedia: return sortObject_Rank_Coeff(objects,API_Occurrence.Wikipedia);
+            case IMPORTANCE: return sortObject_Importance(objects);
+            case NUMSUPERCLASS: return sortObject_NumSuperclass(objects);
+            case NUMSUBCLASS: return sortObject_NumSubclass(objects);
+            case COUNTFACTS: return sortObject_countTriple(objects);
+            case DISTANCE: return sortObject_Distance(objects);
+            case GROUND_TRUTH: return sortObject_GoundTruth(objects);
+            case NUMSUBJECT: return sortObject_NumSubject(objects);
+            case NUMSUBJECTPROPERTY: return sortObject_NumSubjectProperty(objects);
+            default: return  null;
+        }
     }
 
-    private void computeIDCG(){
-        this.sortObject(Sort_Factory.Parameter.GROUND_TRUTH);
+    @Override
+    public void sortObject(Sort_Factory.Parameter parameter) {
+        if(parameter == null){
+            return;
+        }
+        switch (parameter){
+            case CO_OCCURRENCE_COEFFICIENT_Bing: this.objects = sortObject_Rank_Coeff(this.objects,API_Occurrence.Bing); break;
+            case CO_OCCURRENCE_COEFFICIENT_Wikipedia: this.objects = sortObject_Rank_Coeff(this.objects,API_Occurrence.Wikipedia); break;
+            case IMPORTANCE: this.objects = sortObject_Importance(this.objects); break;
+            case COUNTFACTS: this.objects = sortObject_countTriple(this.objects); break;
+            case NUMSUPERCLASS: this.objects = sortObject_NumSuperclass(this.objects);break;
+            case NUMSUBCLASS: this.objects = sortObject_NumSubclass(this.objects); break;
+            case DISTANCE: this.objects = sortObject_Distance(this.objects);break;
+            case GROUND_TRUTH: this.objects = sortObject_GoundTruth(this.objects);break;
+            case NUMSUBJECT: this.objects = sortObject_NumSubject(this.objects); break;
+            case NUMSUBJECTPROPERTY: this.objects = sortObject_NumSubjectProperty(this.objects);break;
+            default:
+        }
+    }
+
+    private void computeIDCG(List<Object> objects_removePositive){
         double sum = 0.0;
-        for(int i=0; i<this.objects.size();i++){
-            Object obj = this.objects.get(i);
-            sum = sum + ( obj.getGroundTruth() * Math.log(2.0) / Math.log(obj.getRank_GroundTruth() + 1));
+        for(int i=0; i<objects_removePositive.size();i++){
+            Object obj = objects_removePositive.get(i);
+            sum = sum + ( (Math.pow(2.0,obj.getGroundTruth() )- 1) * Math.log(2.0) / Math.log(obj.getRank_GroundTruth() + 1));
         }
         this.IDCG = sum;
     }
 
     /**
      * This method computes the value DCG
-     * @return the DCG value for @this.objects.
+     * @return the DCG value for @objects_removePositiv.
      */
-    private double computeDCG(){
+    private double computeDCG(List<Object> objects_removePositive){
         double sum = 0.0;
-        for(int i=0; i<this.objects.size();i++){
-            Object obj = this.objects.get(i);
-            sum = sum + ( obj.getGroundTruth() * Math.log(2.0) / Math.log(i + 2));
+        for(int i=0; i<objects_removePositive.size();i++){
+            Object obj = objects_removePositive.get(i);
+            sum = sum + ( (Math.pow(2.0,obj.getGroundTruth() )- 1) * Math.log(2.0) / Math.log(i + 2));
         }
         return sum;
     }
 
-    @Override
     /**
      * compute NDCG for the list sorted by @parameter.
      * If @parameter == null, then we don't sort this list.
@@ -250,13 +278,66 @@ public class SubjectPropertyImplementation implements SubjectProperty {
      * @param parameter the sort-parameter
      * @return NDCG
      */
+    @Override
     public double computeNDCG(Sort_Factory.Parameter parameter){
-        this.sortObject(parameter);
-        double DCG = this.computeDCG();
+        List<Object> objects_removePositive = this.getNegativeObjects();
+
+        objects_removePositive = this.sortObject(objects_removePositive, parameter);
+        double DCG = this.computeDCG(objects_removePositive);
         if(this.IDCG < 0.0){
-            this.computeIDCG();
+            objects_removePositive = this.sortObject(objects_removePositive, Sort_Factory.Parameter.GROUND_TRUTH);
+            this.computeIDCG(objects_removePositive);
         }
         return DCG / this.IDCG;
     }
 
+    @Override
+    public void grabNumSuperclass() {
+        if (this.objects == null)
+            return;
+        for (int i = 0; i < objects.size(); i++) {
+            int count = API_Factory.grabNumberForSuperclass(objects.get(i).getObject_ID());
+            objects.get(i).setNumSuperclass(count);
+        }
+    }
+
+    @Override
+    public void grabNumSubclass() {
+        if (this.objects == null)
+            return;
+        for (int i = 0; i < objects.size(); i++) {
+            int count = API_Factory.grabNumberForSubclass(objects.get(i).getObject_ID());
+            objects.get(i).setNumSubclass(count);
+        }
+    }
+
+    @Override
+    public void grabDistance() {
+        if (this.objects == null)
+            return;
+        for (int i = 0; i < objects.size(); i++) {
+            int count = API_Factory.grabDistance(subject_id, objects.get(i).getObject_ID());
+            objects.get(i).setDistance(count);
+        }
+    }
+
+    @Override
+    public void grabNumSubject() {
+        if (this.objects == null)
+            return;
+        for (int i = 0; i < objects.size(); i++) {
+            int count = API_Factory.grabNumSubject_given_PropertyAndObject(objects.get(i).getProperty_ID(),objects.get(i).getObject_ID());
+            objects.get(i).setNumSubject(count);
+        }
+    }
+
+    @Override
+    public void grabNumSubjectProperty() {
+        if (this.objects == null)
+            return;
+        for (int i = 0; i < objects.size(); i++) {
+            int count = API_Factory.grabNumSubjectProperty_given_Object(objects.get(i).getObject_ID());
+            objects.get(i).setNumSubjectProperty(count);
+        }
+    }
 }

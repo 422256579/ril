@@ -8,15 +8,18 @@ import ril.Object;
 import ril.SubjectProperty;
 import ril.facotry.API_Factory;
 import ril.facotry.Export_Factory;
+import ril.facotry.Import_Factory;
 import ril.facotry.Sort_Factory;
 import ril.implementation.SubjectPropertyImplementation;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
-import static ril.facotry.Import_Factory.readExcel;
+import static ril.facotry.API_Factory.*;
+import static ril.facotry.Import_Factory.*;
 import static ril.facotry.Sort_Factory.sortObject_Importance;
 
 public class SubjectPropertyImplementationTest {
@@ -130,57 +133,41 @@ public class SubjectPropertyImplementationTest {
     public void test_Do_All_Online_Single() {
         SubjectPropertyImplementation sp = new SubjectPropertyImplementation("Q17714","P166"); // dumpling, material used
         this.DOALL_Online(sp);
-        Export_Factory.exportExcel(sp);
+        List<SubjectProperty> sps = new ArrayList<>();
+        sps.add(sp);
+        Export_Factory.exportExcel(sps);
     }
 
-    @Test
-    public void test_fetch_SearchResult_Wikipedia(){
-        String sub = "Stephen Hawking";
-        String obj = "Nobel Prize";
-        int num = API_Factory.scrapeCo_occurrence_Wikipedia(sub,obj);
-        System.out.println(num);
-        assertTrue(num != -1);
-        int num_subj = API_Factory.scrapeOccurrence_Wikipedia(sub);
-        System.out.println(num_subj);
-        assertTrue(num_subj != -1);
-        int num_obj = API_Factory.scrapeOccurrence_Wikipedia(obj);
-        System.out.println(num_obj);
-        assertTrue(num_obj != -1);
-    }
 
     @Test
     public void testOnline_and_print(){
        SubjectPropertyImplementation sp1 = new SubjectPropertyImplementation("Q17714","P166"); //Stephen Hawking, awards received
-        this.DOALL_Online(sp1);
-        Export_Factory.exportExcel(sp1);
-
         SubjectPropertyImplementation sp2 = new SubjectPropertyImplementation("Q134798","P166"); //Haruki Murakami (村上春树), awards received
-        this.DOALL_Online(sp2);
-        Export_Factory.exportExcel(sp2);
-
         SubjectPropertyImplementation sp3 = new SubjectPropertyImplementation("Q1854639","P186"); // dumpling, material used
-        this.DOALL_Online(sp3);
-        Export_Factory.exportExcel(sp3);
-
         SubjectPropertyImplementation sp4 = new SubjectPropertyImplementation("Q700758","P463"); // Saarland University, member of
-        this.DOALL_Online(sp4);
-        Export_Factory.exportExcel(sp4);
-
         SubjectPropertyImplementation sp5 = new SubjectPropertyImplementation("Q35332","P166"); // Brad Pitt, awards receoved
-        this.DOALL_Online(sp5);
-        Export_Factory.exportExcel(sp5);
-
         SubjectPropertyImplementation sp6 = new SubjectPropertyImplementation("Q22686","P166"); // Donald Trump, awards receoved
-        this.DOALL_Online(sp6);
-        Export_Factory.exportExcel(sp6);
-
         SubjectPropertyImplementation sp7 = new SubjectPropertyImplementation("Q9202","P186"); // Statue of Liberty, material used
-        this.DOALL_Online(sp7);
-        Export_Factory.exportExcel(sp7);
-
         SubjectPropertyImplementation sp8 = new SubjectPropertyImplementation("Q177","P527"); // Pizza, has part
+        this.DOALL_Online(sp1);
+        this.DOALL_Online(sp2);
+        this.DOALL_Online(sp3);
+        this.DOALL_Online(sp4);
+        this.DOALL_Online(sp5);
+        this.DOALL_Online(sp6);
+        this.DOALL_Online(sp7);
         this.DOALL_Online(sp8);
-        Export_Factory.exportExcel(sp8);
+
+        List<SubjectProperty> sps = new ArrayList<>();
+        sps.add(sp1);
+        sps.add(sp2);
+        sps.add(sp3);
+        sps.add(sp4);
+        sps.add(sp5);
+        sps.add(sp6);
+        sps.add(sp7);
+        sps.add(sp8);
+        Export_Factory.exportExcel(sps);
     }
 
     @Test
@@ -201,28 +188,6 @@ public class SubjectPropertyImplementationTest {
     }
 
     @Test
-    public void grab_Occurrence_Bing_test(){
-        String obj = "Order of the Garter";
-        int num = API_Factory.scrapeOccurrence_Bing(obj);
-        System.out.println(num);
-    }
-
-    @Test
-    public void grab_Co_Occurrence_Bing_test(){
-        String obj = "Order of the Garter";
-        String subj = "Stephen Hawking";
-        int num = API_Factory.scrapeCo_occurrence_Bing(subj,obj);
-        System.out.println(num);
-
-    }
-
-    @Test
-    public void simple_Test(){
-        int num = API_Factory.scrapeCo_occurrence_Bing("Stephen Hawking", "Nobel Prize in Physics");
-        System.out.println(num);
-    }
-
-    @Test
     public void sort_Test(){
         ArrayList<Object> objects = new ArrayList<>();
         Object obj1 = new Object("sub","prop","ID1","label1");
@@ -236,12 +201,12 @@ public class SubjectPropertyImplementationTest {
     }
 
     public void NDCG_Single(String path){
-        SubjectProperty sp = readExcel(path);
+        SubjectProperty sp = readExcel_Folder6(path).get(0);
 
         double NDCG_For_Importance = sp.computeNDCG(Sort_Factory.Parameter.IMPORTANCE);
         double NDCG_For_CO_OCCUR_COEFF_Wikipedia = sp.computeNDCG(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Wikipedia);
         double NDCG_For_CO_OCCUR_COEFF_Bing = sp.computeNDCG(Sort_Factory.Parameter.CO_OCCURRENCE_COEFFICIENT_Bing);
-        double NDCG_FOR_CountTriple = sp.computeNDCG(Sort_Factory.Parameter.COUNTTRIPLE);
+        double NDCG_FOR_CountTriple = sp.computeNDCG(Sort_Factory.Parameter.COUNTFACTS);
 
         System.out.println(" For file :" + path);
         System.out.println(" Subject: " + sp.getSubject_label() + "/" + sp.getSubject_id());
@@ -256,14 +221,18 @@ public class SubjectPropertyImplementationTest {
 
     @Test
     public void NDCG_tests(){
-        String folderPath = "D:\\RIL_Excel\\3\\assign ground truth\\";
+        String folderPath = "D:\\RIL_Excel\\6\\";
         String file1 = "Q177_P527_top100.xls";
         String file2 = "Q9202_P186_top100.xls";
         String file3 = "Q17714_P166_top100.xls";
         String file4 = "Q22686_P166_top100.xls";
+        // without Simon
         String file5 = "Q35332_P166_top100.xls";
+        //without Simon
         String file6 = "Q134798_P166_top100.xls";
+        //without Simon
         String file7 = "Q700758_P463_top100.xls";
+        // without Simon,Hiba
         String file8 = "Q1854639_P186_top100.xls";
 
         NDCG_Single(folderPath + file1);
@@ -274,5 +243,203 @@ public class SubjectPropertyImplementationTest {
         NDCG_Single(folderPath + file6);
         NDCG_Single(folderPath + file7);
         NDCG_Single(folderPath + file8);
+    }
+
+    public void Weka_Single(String path){
+        SubjectProperty sp = readExcel_Folder6(path).get(0);
+        Export_Factory.exportARFF(sp);
+        String filePath = "D:\\RIL_Excel\\6\\" + sp.getSubject_id() + "_" + sp.getProperty_id() + ".arff";
+        Import_Factory.readARFF_weka(filePath);
+    }
+
+    @Test
+    public void weka_test(){
+        String folderPath = "D:\\RIL_Excel\\6\\";
+        String file1 = "Q177_P527_top100.xls";
+        String file2 = "Q9202_P186_top100.xls";
+        String file3 = "Q17714_P166_top100.xls";
+        String file4 = "Q22686_P166_top100.xls";
+        // without Simon
+        String file5 = "Q35332_P166_top100.xls";
+        //without Simon
+        String file6 = "Q134798_P166_top100.xls";
+        //without Simon
+        String file7 = "Q700758_P463_top100.xls";
+        // without Simon,Hiba
+        String file8 = "Q1854639_P186_top100.xls";
+
+        this.Weka_Single(folderPath + file1);
+        this.Weka_Single(folderPath + file2);
+        this.Weka_Single(folderPath + file3);
+        this.Weka_Single(folderPath + file4);
+        this.Weka_Single(folderPath + file5);
+        this.Weka_Single(folderPath + file6);
+        this.Weka_Single(folderPath + file7);
+        this.Weka_Single(folderPath + file8);
+
+    }
+
+    @Test
+    public void Fleiss_Kappa_SimpleTest() {
+        String folderPath = "D:\\RIL_Excel\\test\\";
+        String file1 = "test1.xls";
+        System.out.println("The agreement for file " + file1 + " is: " + readExcel_Fleiss_Kappa(folderPath + file1));
+    }
+
+    @Test
+    public void Fleiss_Kappa_test(){
+        String folderPath = "D:\\RIL_Excel\\6\\";
+        String file1 = "Q177_P527_top100.xls";
+        String file2 = "Q9202_P186_top100.xls";
+        String file3 = "Q17714_P166_top100.xls";
+        String file4 = "Q22686_P166_top100.xls";
+        // without Simon
+        String file5 = "Q35332_P166_top100.xls";
+        //without Simon
+        String file6 = "Q134798_P166_top100.xls";
+        //without Simon
+        String file7 = "Q700758_P463_top100.xls";
+        // without Simon,Hiba
+        String file8 = "Q1854639_P186_top100.xls";
+
+        System.out.println("The agreement for file " + file1 + " is: " + readExcel_Fleiss_Kappa(folderPath + file1));
+        System.out.println("The agreement for file " + file2 + " is: " + readExcel_Fleiss_Kappa(folderPath + file2));
+        System.out.println("The agreement for file " + file3 + " is: " + readExcel_Fleiss_Kappa(folderPath + file3));
+        System.out.println("The agreement for file " + file4 + " is: " + readExcel_Fleiss_Kappa(folderPath + file4));
+        System.out.println("The agreement for file " + file5 + " is: " + readExcel_Fleiss_Kappa(folderPath + file5));
+        System.out.println("The agreement for file " + file6 + " is: " + readExcel_Fleiss_Kappa(folderPath + file6));
+        System.out.println("The agreement for file " + file7 + " is: " + readExcel_Fleiss_Kappa(folderPath + file7));
+        System.out.println("The agreement for file " + file8 + " is: " + readExcel_Fleiss_Kappa(folderPath + file8));
+    }
+
+    @Test
+    public void wekaTest(){
+        String filePath = "D:\\RIL_Excel\\6\\Q177_P527.arff";
+        Import_Factory.readARFF_weka(filePath);
+    }
+
+    @Test
+    public void weka_Test(){
+        String folderPath = "D:\\RIL_Excel\\7\\";
+        String file1 = "allFiles.xls";
+        SubjectProperty sp = Import_Factory.readExcel_Folder6(folderPath + file1).get(0);
+        Export_Factory.exportARFF(sp);
+        Import_Factory.readARFF_weka(folderPath + "allFiles.arff");
+    }
+
+    @Test
+    public void countAgreement_Test(){
+        String folderPath = "D:\\RIL_Excel\\7\\";
+        String file1 = "allFiles.xls";
+        int[] countAgreement = Import_Factory.readExcel_countAgreement(folderPath + file1);
+        System.out.println("Disagreement : " + countAgreement[0] + "  intermediate agreement : " + countAgreement[1] + "  agreement : " + countAgreement[2]);
+    }
+
+    @Test
+    public void countAgreement_SimpleTest(){
+        String folderPath = "D:\\RIL_Excel\\test\\";
+        String file1 = "test1.xls";
+        int[] countAgreement = Import_Factory.readExcel_countAgreement(folderPath + file1);
+        System.out.println("Disagreement : " + countAgreement[0] + "  intermediate agreement : " + countAgreement[1] + "  agreement : " + countAgreement[2]);
+    }
+
+    @Test
+    public void Weka_LinearRegression_WithSubclassSuperclass(){
+        String folderPath = "D:\\RIL_Excel\\7\\";
+        String file1 = folderPath + "Q177_P527_top100.xls";
+        String file2 = folderPath + "Q9202_P186_top100.xls";
+        String file3 = folderPath + "Q17714_P166_top100.xls";
+        String file4 = folderPath + "Q22686_P166_top100.xls";
+
+        String[] files = {file1, file2,file3,file4};
+        for(int i=0; i<files.length;i++){
+            SubjectProperty sp = readExcel_Folder6(files[i]).get(0);
+            ArrayList<Object> objs = sp.getObjects();
+            for(int j=0; j<objs.size();j++) {
+                int numSub = grabNumberForSubclass(objs.get(j).getObject_ID());
+                int numSuper = grabNumberForSuperclass(objs.get(j).getObject_ID());
+                objs.get(j).setNumSubclass(numSub);
+                objs.get(j).setNumSuperclass(numSuper);
+            }
+
+            sp.setObjects(objs);
+            sp.sortObject(Sort_Factory.Parameter.NUMSUPERCLASS);
+            sp.sortObject(Sort_Factory.Parameter.NUMSUBCLASS);
+
+            Export_Factory.exportARFF(sp);
+            Import_Factory.readARFF_weka("D:\\RIL_Excel\\7\\" + sp.getSubject_id() + "_" + sp.getProperty_id() + ".arff");
+        }
+    }
+
+    @Test
+    public void Weka_LinearRegression_WithSubclassSuperclass_Together(){
+        String folderPath = "D:\\RIL_Excel\\7\\";
+        String file1 = folderPath + "all.arff";
+        readARFF_weka(file1);
+    }
+
+    @Test //pass
+    public void rekursiv_Distance_SimpleTest(){
+        System.out.println(rekursiv_GrabDistance("Q22686", "Q6294",1));
+
+        System.out.println(grabDistance("Q22686", "Q6294"));
+    }
+
+    @Test
+    public void ConvertExcelAndOutputARFF_Folder6(){
+        String folderPath = "D:\\RIL_Excel\\6\\";
+        String file1 = "Q177_P527_top100.xls";
+        String file2 = "Q9202_P186_top100.xls";
+        String file3 = "Q17714_P166_top100.xls";
+        String file4 = "Q22686_P166_top100.xls";
+
+        List<SubjectProperty> sps1 = readExcel_Folder6(folderPath + file1);
+        List<SubjectProperty> sps2 = readExcel_Folder6(folderPath + file2);
+        List<SubjectProperty> sps3 = readExcel_Folder6(folderPath + file3);
+        List<SubjectProperty> sps4 = readExcel_Folder6(folderPath + file4);
+
+        List<SubjectProperty> sps = new ArrayList<>();
+        sps.add(sps1.get(0));
+        sps.add(sps2.get(0));
+        sps.add(sps3.get(0));
+        sps.add(sps4.get(0));
+
+        for(int i=0; i<sps.size();i++){
+            sps.get(i).grabNumSuperclass();
+            System.out.println("finish grab Number of Superclass " + i);
+            sps.get(i).grabNumSubclass();
+            System.out.println("finish grab Number of Subclass " + i);
+            sps.get(i).grabDistance();
+            System.out.println("finish grab Number of distance " + i);
+            sps.get(i).grabNumSubject();
+            System.out.println("finish grab Number of NumSubject " + i);
+            sps.get(i).grabNumSubjectProperty();
+            System.out.println("finish grab Number of NumSubjectProperty " + i);
+
+            sps.get(i).sortObject(Sort_Factory.Parameter.NUMSUPERCLASS);
+            sps.get(i).sortObject(Sort_Factory.Parameter.NUMSUBCLASS);
+            sps.get(i).sortObject(Sort_Factory.Parameter.DISTANCE);
+            sps.get(i).sortObject(Sort_Factory.Parameter.NUMSUBJECT);
+            sps.get(i).sortObject(Sort_Factory.Parameter.NUMSUBJECTPROPERTY);
+
+            System.out.println("finish  " + i);
+            Export_Factory.exportARFF(sps.get(i));
+        }
+        Export_Factory.exportARFF_ALLINONE(sps);
+        Export_Factory.exportExcel(sps);
+    }
+
+    @Test
+    public void ConvertExcelAndOutputARFF_Folder9(){
+        String folderPath = "D:\\RIL_Excel\\9\\";
+        String file = "all_file_top100.xls";
+
+        List<SubjectProperty> sps = readExcel_Folder9(folderPath + file);
+
+
+        for(int i=0; i<sps.size();i++){
+            Export_Factory.exportARFF(sps.get(i));
+        }
+        Export_Factory.exportARFF_ALLINONE(sps);
     }
 }

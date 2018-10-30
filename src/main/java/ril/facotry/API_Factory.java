@@ -22,9 +22,17 @@ import java.util.Scanner;
 
 public class API_Factory {
 
-    static final int ERROR_MAX = 10;
+    static final int ERROR_MAX = 3;
 
     static String subscriptionKey = "2faf6a70e52a46318ec658b2a14c891c";
+
+    public static List<BindingSet> queryWikidata(String query){
+        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
+        sparqlRepository.initialize();
+        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
+        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        return QueryResults.asList(tupleQuery.evaluate());
+    }
 
     /**
      * This method retrieve the object-list for the fixed @subject(ID-format) and @property(ID-format).
@@ -33,18 +41,13 @@ public class API_Factory {
      * @return The ID-list, which is the result of our search for the fixed @subject and @property.
      */
 	public static void scrapePositive_Objects_Wikidata(String subject, String property, List<Object> objects) {
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-        String query = "";
-
-        query = "select ?x\r\n" +
+	    String query = "select ?x\r\n" +
                 "where{\r\n" +
                 " wd:" + subject + " wdt:" + property +" ?x\r\n" +
                 "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }}";
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        List<BindingSet> bss = queryWikidata(query);
         ArrayList<String> positive_objects = new ArrayList<>();
-        for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
+        for (BindingSet bs : bss) {
             String[] strs = bs.getValue("x").stringValue().split("/");
             positive_objects.add(strs[strs.length-1]);
         }
@@ -65,11 +68,7 @@ public class API_Factory {
      */
     public static String scrapeLabelByID_Wikidata(String id){
 		try {
-			SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-			sparqlRepository.initialize();
-			RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-			String query = "";
-			query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
+			String query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
 					"PREFIX wd: <http://www.wikidata.org/entity/>\n" +
 					"select  *\n" +
 					"where { \n" +
@@ -77,8 +76,7 @@ public class API_Factory {
 					"FILTER (langMatches( lang(?label), \"EN\" ) )\n" +
 					"} \n" +
 					"LIMIT 1";
-			TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-			List<BindingSet> bss = QueryResults.asList(tupleQuery.evaluate());
+			List<BindingSet> bss = queryWikidata(query);
 			if (bss.size() == 0) {
 				// this case for no label defined. e.g. Q45608
 				return null;
@@ -167,7 +165,7 @@ public class API_Factory {
      * @param object_label the label of object
      * @return the number of co-occurrence
      */
-    public static int scrapeCo_occurrence_Bing(String subject_label, String object_label) {
+    private static int scrapeCo_occurrence_Bing(String subject_label, String object_label) {
         try {
             String api_URL = "https://api.cognitive.microsoft.com/bingcustomsearch/v7.0/search?q=\""+ URLEncoder.encode(subject_label,"UTF-8") +  "\"+\"" + URLEncoder.encode(object_label,"UTF-8") + "\"&customconfig=4be451c3-f15d-4be3-bc0c-36e9bb8ab0a0&mkt=de-DE";
             URL url = new URL(api_URL);
@@ -200,7 +198,7 @@ public class API_Factory {
      * @param label the label of object
      * @return the number of occurrence
      */
-    public static int scrapeOccurrence_Bing(String label) {
+    private static int scrapeOccurrence_Bing(String label) {
         try {
             String api_URL = "https://api.cognitive.microsoft.com/bingcustomsearch/v7.0/search?q=\""+ URLEncoder.encode(label,"UTF-8") + "\"&customconfig=4be451c3-f15d-4be3-bc0c-36e9bb8ab0a0&mkt=de-DE";
             URL url = new URL(api_URL);
@@ -228,7 +226,7 @@ public class API_Factory {
         }
     }
 
-    public static int scrapeCo_occurrence_Wikipedia(String subject_label, String object_label){
+    private static int scrapeCo_occurrence_Wikipedia(String subject_label, String object_label){
 		String[] subject_pieces = subject_label.split(" ");
 		String[] object_pieces = object_label.split(" ");
         String subject_label_new = "";
@@ -267,7 +265,7 @@ public class API_Factory {
 		}
 	}
 
-    public static int scrapeOccurrence_Wikipedia(String label) {
+    private static int scrapeOccurrence_Wikipedia(String label) {
         String[] label_pieces = label.split(" ");
         String label_new = "";
         if (label_pieces.length > 1) {
@@ -327,19 +325,14 @@ public class API_Factory {
     //P31 for instance of
     //P279 for subclass of
     public static void scrape_Object_IDs_given_SubjectAndProperty(String subject_ID, String property_ID, ArrayList<String> object_IDs_list){
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-        String query = "";
-        query = "SELECT ?x\n" +
+        String query =  "SELECT ?x\n" +
                 "WHERE \n" +
                 "{\n" +
                 "  wd:" + subject_ID +" wdt:" + property_ID + " ?x.\n" +
                 "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
                 "}";
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-
-        for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
+        List<BindingSet> bss = queryWikidata(query);
+        for (BindingSet bs : bss) {
             String[] strs = bs.getValue("x").stringValue().split("/");
             String str = strs[strs.length-1];
             if(!object_IDs_list.contains(str)){
@@ -348,43 +341,15 @@ public class API_Factory {
         }
     }
 
-    public static ArrayList<String> scrape_Subject_IDs_given_PropertyAndObject(String property_ID, String object_ID, ArrayList<String> subject_IDs_list){
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-        String query = "";
-        query = "SELECT ?x\n" +
-                "WHERE \n" +
-                "{\n" +
-                "  ?x  wdt:" + property_ID + " wd:" + object_ID + ".\n" +
-                "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
-                "}";
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-
-        for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
-            String[] strs = bs.getValue("x").stringValue().split("/");
-            String str = strs[strs.length-1];
-            if(!subject_IDs_list.contains(str)){
-                subject_IDs_list.add(str);
-            }
-        }
-        return subject_IDs_list;
-    }
-
     public static ArrayList<Object> scrape_Object_IDs_given_property(String subject_ID, String property_ID, ArrayList<Object> objects){
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-        String query = "";
-        query = "SELECT DISTINCT ?y\n" +
+        String query = "SELECT DISTINCT ?y\n" +
                 "WHERE \n" +
                 "{\n" +
                 "  ?x  wdt:" + property_ID + " ?y" + ".\n" +
                 "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
                 "}\n";
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-
-        for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
+        List<BindingSet> bss = queryWikidata(query);
+        for (BindingSet bs : bss) {
             String[] strs = bs.getValue("y").stringValue().split("/");
             String str = strs[strs.length-1];
             String obj_label = API_Factory.scrapeLabelByID_Wikidata(str);
@@ -400,21 +365,16 @@ public class API_Factory {
 
     // property_superclass = P31 for instance of and P279 for subclass of
     public static int scrapeCountTriple_given_Property_Object_Superclass(String property, String property_superclass, String object, String superclass){
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-        String query = "";
-        query = "select (count(*) as ?count)\n" +
+        String query = "select (count(*) as ?count)\n" +
                 "where{\n" +
                 "  ?x wdt:" + property + " wd:"+ object +".\n" +
                 "  ?x wdt:" + property_superclass + " wd:"+ superclass +".\n" +
                 "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
                 "}";
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-
+        List<BindingSet> bss = queryWikidata(query);
         int num = -1;
         try {
-            BindingSet bs = QueryResults.asList(tupleQuery.evaluate()).get(0);
+            BindingSet bs = bss.get(0);
             String str = bs.getValue("count").stringValue();
             num = Integer.parseInt(str);
             System.out.println("property: " + property + "  property_superclass: " + property_superclass + "   superclass: " + superclass + "   object: " + object + "  number: " + num);
@@ -435,7 +395,7 @@ public class API_Factory {
         ArrayList<String> superclass_ids_P279 = new ArrayList<>();
         API_Factory.scrape_Object_IDs_given_SubjectAndProperty(subject_ID, "P279", superclass_ids_P279);
 
-        //Finally, count the number of COUNTTRIPLE for each possible objects.
+        //Finally, count the number of COUNTFACTS for each possible objects.
         for(int i=0; i<objects.size();i++){
             int num = 0;
             for(String superclass : superclass_ids_P31){
@@ -444,22 +404,16 @@ public class API_Factory {
             for(String superclass : superclass_ids_P279){
                 num = num + scrapeCountTriple_given_Property_Object_Superclass(property_ID,"P279",objects.get(i).getObject_ID(),superclass);
             }
-            objects.get(i).setCountTriple(num);
+            objects.get(i).setCountFacts(num);
         }
         System.out.println("This result is check by type: subject " + subject_ID + " property " + property_ID);
     }
 
     public static ArrayList<Object> grabObjects(String subject_ID, String property_ID, String query){
-        SPARQLRepository sparqlRepository = new SPARQLRepository("https://query.wikidata.org/sparql");
-        sparqlRepository.initialize();
-        RepositoryConnection sparqlConnection = sparqlRepository.getConnection();
-
-        TupleQuery tupleQuery = sparqlConnection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-
         ArrayList<Object> objects = new ArrayList<>();
-
+        List<BindingSet> bss = queryWikidata(query);
         try {
-            for (BindingSet bs : QueryResults.asList(tupleQuery.evaluate())) {
+            for (BindingSet bs : bss) {
                 String[] strs = bs.getValue("y").stringValue().split("/");
                 String object_ID = strs[strs.length - 1];
                 String str = bs.getValue("cnt").stringValue();
@@ -469,7 +423,7 @@ public class API_Factory {
                     continue;
                 } else {
                     Object obj = new Object(subject_ID, property_ID, object_ID, object_label);
-                    obj.setCountTriple(countTriple);
+                    obj.setCountFacts(countTriple);
                     objects.add(obj);
                 }
             }
@@ -477,5 +431,125 @@ public class API_Factory {
         }catch(Exception e){
             return null;
         }
+    }
+
+    public static int grabNumberForSubclass(String object_ID){
+        String query = "SELECT (COUNT(?item) AS ?count)\n" +
+                "WHERE {\n" +
+                "\t?item wdt:P31/wdt:P279* wd:" + object_ID + " .\n" +
+                "}";
+        for(int error = 0; error < ERROR_MAX;error++) {
+            try {
+                BindingSet bs = queryWikidata(query).get(0);
+                int count = Integer.parseInt(bs.getValue("count").stringValue());
+                return count;
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        System.out.println("grabNumberForSubclass " + ERROR_MAX + " ERROR. ObjectID: " + object_ID);
+        return -1;
+    }
+
+    public static int grabNumberForSuperclass(String subject_ID){
+        String query = "SELECT (COUNT(?item) AS ?count)\n" +
+                "WHERE {\n" +
+                "\twd:"+subject_ID+ " wdt:P31/wdt:P279*  ?item .\n" +
+                "}";
+        for(int error = 0; error < ERROR_MAX;error++) {
+            try {
+                BindingSet bs = queryWikidata(query).get(0);
+                int count = Integer.parseInt(bs.getValue("count").stringValue());
+                return count;
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        System.out.println("grabNumberForSuperclass " + ERROR_MAX + " ERROR. ObjectID: " + subject_ID);
+        return -1;
+    }
+
+    public static int grabDistance(String subject_ID, String object_ID){
+        for (int i = 1; i<101 ; i++) {
+            for(int error_times = 0; error_times < ERROR_MAX; error_times++) {
+                try {
+                    if (rekursiv_GrabDistance(subject_ID, object_ID, i)) {
+                        return i;
+                    }else{
+                        break;
+                    }
+                }catch (Exception e){
+                     if(error_times == ERROR_MAX - 1){
+                         System.out.println(subject_ID + "  " + object_ID +  ERROR_MAX + " times error.");
+                         return 101;
+                     } else{
+                         continue;
+                     }
+                }
+            }
+        }
+        return 101;
+    }
+
+    public static boolean rekursiv_GrabDistance(String subject_ID, String object_ID, int cycle){
+        String query = "SELECT (COUNT(?prop1) AS ?count)\n" +
+                "WHERE {\n" +
+                "\twd:"+subject_ID;
+        for(int i=1; i< cycle; i++){
+            query = query + " ?prop" + i + " ?item" + i + " . \n";
+            query = query + "\t ?item" + i ;
+        }
+        query = query + " ?prop" + cycle + " wd:" + object_ID + " .\n" +
+                "}";
+        List<BindingSet> bss = queryWikidata(query);
+        Integer result = Integer.parseInt(bss.get(0).getValue("count").stringValue());
+        if(result == 0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    public static int grabNumSubject_given_PropertyAndObject(String property_ID, String object_ID){
+        String query = "SELECT (COUNT(?item) AS ?count)\n" +
+                "WHERE \n" +
+                "{\n" +
+                "  ?item  wdt:" + property_ID + " wd:" + object_ID + ".\n" +
+                "}";
+        for(int error = 0; error < ERROR_MAX;error++) {
+            try {
+                BindingSet bs = queryWikidata(query).get(0);
+                int count = Integer.parseInt(bs.getValue("count").stringValue());
+                return count;
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        System.out.println("grabNumSubject_given_PropertyAndObject " + ERROR_MAX + " Error. PropertyID: " + property_ID + " ObjectID: " + object_ID);
+        return -1;
+    }
+
+    public static int grabNumSubjectProperty_given_Object (String object_ID){
+        String query = "SELECT (COUNT(*) AS ?count)\n" +
+                "WHERE \n" +
+                "{\n" +
+                "  ?item  ?prop wd:" + object_ID + ".\n" +
+                "}";
+        for(int error = 0; error < ERROR_MAX;error++) {
+            try {
+                BindingSet bs = queryWikidata(query).get(0);
+                int count = Integer.parseInt(bs.getValue("count").stringValue());
+                return count;
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        System.out.println("grabNumSubjectProperty_given_Object " + ERROR_MAX + " Error times. Object_ID: "+ object_ID);
+        return -1;
     }
 }
